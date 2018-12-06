@@ -1,0 +1,68 @@
+version: "3"
+
+services:
+
+  jupyter:
+    container_name: "ada_jupyter_2018"
+    image: ada_jupyter
+    ports:
+      - 8888:8888
+
+  postgres:
+    container_name: 'ada_postgres_2018'
+    image: postgres
+    environment:
+      - POSTGRES_DB=airflow
+    #volumes:
+    #  - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+
+  superset:
+    container_name: 'ada_superset_2018'
+    image: tylerfowler/superset
+    ports:
+      - 8088:8088
+
+  minio1:
+    container_name: "ada_minio_2018"
+    image: minio/minio
+    volumes:
+      - ./minio-data:/export
+    ports:
+      - "9001:9000"
+    environment:
+      MINIO_ACCESS_KEY: asd
+      MINIO_SECRET_KEY: asdasdasd
+    command: minio server /data/minio/
+
+  web:
+    container_name: "ada_flask_2018"
+    image: tiangolo/uwsgi-nginx-flask:python3.7
+    volumes:
+      - ./app:/app
+    ports:
+      - "80:80"
+    environment:
+      - FLASK_APP=main.py
+      - FLASK_DEBUG=1
+      - 'RUN=flask run --host=0.0.0.0 --port=80'
+    command: flask run --host=0.0.0.0 --port=80
+
+  airflow:
+    container_name: "ada_airflow_2018"
+    image: puckel/docker-airflow
+    volumes:
+      - ./DAG:/usr/local/airflow/dags
+    depends_on:
+      - postgres
+    #environment:
+    #  - EXECUTOR=Local
+    #  - AIRFLOW_CONN_POSTGRES_MASTER=postgresql://postgres:postgres@postgres
+    ports:
+      - 8080:8080
+    command: webserver
+   
+  
+      
